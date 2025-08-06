@@ -3,19 +3,52 @@ class DaichiCloudException(Exception):
         self.message = message
         super().__init__(self.message)
 
+class DaichiCloudCommandException(DaichiCloudException):
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)
 
-class DaichiCloudApiException(Exception):
-    def __init__(self, message, code=None):
+class DaichiCloudHttpException(Exception):
+    def __init__(self, message: str, code: int):
         """
-        Пользовательское исключение для Daikin Cloud API
-
-        :param message: Текст ошибки
-        :param code: Код ошибки (опционально)
+            Base HTTP error
         """
-        super().__init__(message)
         self.code = code
+        super().__init__(message)
 
     def __str__(self):
         if self.code:
             return f"{self.args[0]} (error code: {self.code})"
         return self.args[0]
+
+class DaichiCloudServerProblemException(DaichiCloudHttpException):
+    def __init__(self, message: str, code: int):
+        """
+        Server has problem 500, 503, 504
+
+        :param message: error message
+        :param code: error http code
+        """
+        super().__init__(message=message, code=code)
+
+class DaichiCloudAuthErrorException(DaichiCloudHttpException):
+    def __init__(self, message: str, code: int):
+        """
+        Incorrect token/login or password
+
+        :param message: error message
+        :param code: error http code
+        """
+        super().__init__(message=message, code=code)
+
+
+class DaichiCloudUnknowErrorException(DaichiCloudHttpException):
+    def __init__(self, message: str, code: int):
+        """
+        Unknown Error
+
+        :param message: error message
+        :param code: error http code
+        """
+        super().__init__(message=message, code=code)
+

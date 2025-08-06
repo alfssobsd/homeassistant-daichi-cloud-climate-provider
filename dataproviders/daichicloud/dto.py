@@ -1,12 +1,31 @@
 from enum import Enum
-from pprint import pprint
 
 from pydantic import BaseModel, Field, field_validator, computed_field
-from typing import Optional, List, Union, Any
+from typing import Optional, List, Any
 
-from pydantic.v1 import root_validator, validator
+from pydantic.v1 import root_validator
 
 from dataproviders.daichicloud.command_registry import ClimateCommandsEnum
+
+
+class ControlOnOffValueRequest(BaseModel):
+    function_id: int = Field(None, serialization_alias="functionId")
+    is_on: bool = Field(None, serialization_alias="isOn")
+    parameters: Optional[Any] = Field(None, serialization_alias="parameters")
+
+class ControlSetValueRequest(BaseModel):
+    function_id: int = Field(None, serialization_alias="functionId")
+    value: int = Field(None, serialization_alias="value")
+    parameters: Optional[Any] = Field(None, serialization_alias="parameters")
+
+class ControlRequest(BaseModel):
+    cmd_id: int = Field(None, serialization_alias="cmdId")
+    value: ControlSetValueRequest | ControlOnOffValueRequest = Field(None, serialization_alias="value")
+    conflict_resolve_data: str|None = Field(None, serialization_alias="conflictResolveData")
+
+class ControlResponse(BaseModel):
+    done: bool
+    errors: str | None
 
 
 class MqttCredentials(BaseModel):
@@ -17,19 +36,6 @@ class MqttCredentials(BaseModel):
 class UserData(BaseModel):
     id: int
     mqtt_credentials: Optional[MqttCredentials] = Field(None, alias="mqttUser")
-
-
-class ControlValueRequest(BaseModel):
-    function_id: int = Field(None, alias="functionId")
-    value: Optional[int] = Field(None, alias="value")
-    is_on: Optional[bool] = Field(None, alias="isOn")
-    parameters: Optional[Any] = Field(None, alias="parameters")
-
-class ControlRequest(BaseModel):
-    cmdId: int = Field(None, alias="cmdId")
-    value: ControlValueRequest = Field(None, alias="value")
-    conflictResolveData: None
-
 
 class PlaceStatusEnum(str, Enum):
     CONNECTED = 'connected'
@@ -217,7 +223,6 @@ class Place(BaseModel):
 
     @root_validator(pre=True)
     def parse_text_to_payload(cls, values):
-        pprint(values)
         return values
 
 
