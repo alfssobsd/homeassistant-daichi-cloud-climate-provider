@@ -7,3 +7,7 @@ I don't have a goal to benefit from this software solution.
 - Control general parameters like fans speed, mode, temperature, etc
 - Discovery devices and publish to MQTT
 - Receive commands Homeassistant from MQTT and execute by API
+
+## How to use
+1. Copy .env.example and set value
+2. run main.py
