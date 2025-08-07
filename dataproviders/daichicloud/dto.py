@@ -13,15 +13,18 @@ class ControlOnOffValueRequest(BaseModel):
     is_on: bool = Field(None, serialization_alias="isOn")
     parameters: Optional[Any] = Field(None, serialization_alias="parameters")
 
+
 class ControlSetValueRequest(BaseModel):
     function_id: int = Field(None, serialization_alias="functionId")
     value: int = Field(None, serialization_alias="value")
     parameters: Optional[Any] = Field(None, serialization_alias="parameters")
 
+
 class ControlRequest(BaseModel):
     cmd_id: int = Field(None, serialization_alias="cmdId")
     value: ControlSetValueRequest | ControlOnOffValueRequest = Field(None, serialization_alias="value")
-    conflict_resolve_data: str|None = Field(None, serialization_alias="conflictResolveData")
+    conflict_resolve_data: str | None = Field(None, serialization_alias="conflictResolveData")
+
 
 class ControlResponse(BaseModel):
     done: bool
@@ -36,6 +39,7 @@ class MqttCredentials(BaseModel):
 class UserData(BaseModel):
     id: int
     mqtt_credentials: Optional[MqttCredentials] = Field(None, alias="mqttUser")
+
 
 class PlaceStatusEnum(str, Enum):
     CONNECTED = 'connected'
@@ -66,10 +70,12 @@ class ClimateStatePayloadTypeEnum(str, Enum):
     FUNC_TURBO_ON = 'turbo_on'
     FUNC_ECO_ON = 'eco_on'
 
+
 class ClimateStatePayload(BaseModel):
     climate_state_type: ClimateStatePayloadTypeEnum
     command: ClimateCommandsEnum | None
     value: bool | int | str
+
 
 class PlaceDetailItem(BaseModel):
     """
@@ -189,11 +195,12 @@ class PlaceDetailItem(BaseModel):
 
         return None
 
+
 class PlaceState(BaseModel):
     """
         conditioner current state, status about power
     """
-    is_on: Optional[bool] = Field(None, alias="isOn") # True - is On, False - is Off
+    is_on: Optional[bool] = Field(None, alias="isOn")  # True - is On, False - is Off
     details: Optional[List[PlaceDetailItem]] = Field(default_factory=list, alias='details')
 
     @field_validator("details", mode="before")
@@ -209,8 +216,8 @@ class PlaceState(BaseModel):
 
 
 class Place(BaseModel):
-    id: int # id device for control
-    title: str # Name specified by the owner like "Living room", "Bedroom 2th floor"
+    id: int  # id device for control
+    title: str  # Name specified by the owner like "Living room", "Bedroom 2th floor"
     serial: str
     access: Optional[AccessEnum] = None
     status: Optional[PlaceStatusEnum] = None
@@ -219,7 +226,6 @@ class Place(BaseModel):
     cloud_type: Optional[str] = Field(None, alias="cloudType")
     firmware_type: Optional[str] = Field(None, alias="firmwareType")
     sensor_temp: Optional[int] = Field(None, alias="curTemp")
-    firmware_type: Optional[str] = Field(None, alias="firmwareType")
 
     @root_validator(pre=True)
     def parse_text_to_payload(cls, values):
@@ -233,4 +239,4 @@ class Building(BaseModel):
     utc: int
     address: Optional[str]
     timeZone: str
-    paces: List[Place] = Field(default_factory=list, alias='places')
+    places: List[Place] = Field(default_factory=list, alias='places')
