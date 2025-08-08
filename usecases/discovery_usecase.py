@@ -1,6 +1,10 @@
+import structlog
+
 from dataproviders.daichicloud.command_registry import ClimateCommandsEnum
 from dataproviders.daichicloud.daichicloud_api import DaichiCloudClient
-from dataproviders.homeassistant_mqtt.dto import DeviceClimateDescribe, DeviceClimateDeviceDescribe
+from dataproviders.homeassistant_mqtt.dto import MQTTDeviceClimateDescribe, MQTTDeviceClimateDeviceDescribe
+
+log = structlog.get_logger()
 
 
 class DiscoveryClimateDeviceUseCase:
@@ -20,26 +24,26 @@ class DiscoveryClimateDeviceUseCase:
             self._publish_to_states(place=place)
             self._publish_to_sensor(place=place)
 
-
     def _make_describe_of_device(self, place):
         min_temp = ClimateCommandsEnum.SET_TEMP.value.available_value[0]
         max_temp = ClimateCommandsEnum.SET_TEMP.value.available_value[1]
-        device = DeviceClimateDescribe(
+        device = MQTTDeviceClimateDescribe(
             original_dachi_cloud_id=place.id,
             name=place.title,
             min_temp=min_temp,
             max_temp=max_temp,
-            device=DeviceClimateDeviceDescribe(
+            device=MQTTDeviceClimateDeviceDescribe(
                 serial_number=place.serial,
             )
         )
-        print(device.model_dump())
-        print(device.discovery_device_climate_topic())
+        log.info(device.model_dump())
+        log.info(device.discovery_device_climate_topic())
 
-    def _publish_to_mqtt_describe(self,place):
+    def _publish_to_mqtt_describe(self, place):
         pass
 
-    def _publish_to_sensor(self,place):
+    def _publish_to_sensor(self, place):
         pass
-    def _publish_to_states(self,place):
+
+    def _publish_to_states(self, place):
         pass

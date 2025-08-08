@@ -1,28 +1,47 @@
+import logging
 import os.path
 
+import structlog
 from dotenv import load_dotenv
 
-from dataproviders.daichicloud.daichicloud_api import DaichiCloudClient
+from dataproviders.homeassistant_mqtt.mqtt_helper import HomeAssistantMQTTHelper
 from usecases.discovery_usecase import DiscoveryClimateDeviceUseCase
 
+logging.basicConfig(
+    level=logging.DEBUG,
+)
+
+structlog.configure(
+    processors=[
+        structlog.processors.CallsiteParameterAdder(
+            [structlog.processors.CallsiteParameter.FILENAME, structlog.processors.CallsiteParameter.LINENO]
+        ),
+        structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M:%S"),
+        structlog.dev.ConsoleRenderer(),
+    ],
+    logger_factory=structlog.stdlib.LoggerFactory(),
+)
+
+log = structlog.get_logger()
 
 def main():
     if os.path.exists('.env'):
         load_dotenv()
 
-    # print(os.getenv('DAICHI_USER'))
-    daichi = DaichiCloudClient(
-        username=os.getenv('DAICHI_USER'),
-        password=os.getenv('DAICHI_PASS')
-    )
-    dc_uc = DiscoveryClimateDeviceUseCase(daichi=daichi)
-    dc_uc.execute()
-    # rrr.get_userinfo()
-    # rrr.get_buildings()
-    # print(rrr.execute_command(device_id=287369, command=ClimateCommandsEnum.SET_FAN_SPEED, payload=2))
+    # daichi = DaichiCloudClient(
+    #     username=os.getenv('DAICHI_USER'),
+    #     password=os.getenv('DAICHI_PASS')
+    # )
+    # dc_uc = DiscoveryClimateDeviceUseCase(daichi=daichi)
+    # dc_uc.execute()
 
-    # print(rrr.get_mqtt_topic_notification())
-    # print(rrr.get_mqtt_topic_commands_status())
+    log.debug(HomeAssistantMQTTHelper.classify_topic('dachi_cloud_climate/device_id_287350/ac/temperature/set'))
+    log.debug(HomeAssistantMQTTHelper.extract_device_id('dachi_cloud_climate/device_id_287350/ac/temperature/set'))
+    log.debug(HomeAssistantMQTTHelper.classify_topic('dachi_cloud_climate/device_id_287350/ac/mode/state'))
+    log.debug(HomeAssistantMQTTHelper.extract_device_id('dachi_cloud_climate/device_287350/ac/mode/state'))
+    log.debug(HomeAssistantMQTTHelper.classify_topic('bbb/device_id_287350/ac/mode/state'))
+    log.debug(HomeAssistantMQTTHelper.extract_device_id('bbb/device_id_287350sdsd/ac/mode/state'))
+    log.debug(HomeAssistantMQTTHelper.classify_topic('bbb/device_id_287350/ac/mode/33'))
 
 if __name__ == "__main__":
     main()
