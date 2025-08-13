@@ -5,6 +5,8 @@ import structlog
 from dotenv import load_dotenv
 
 from dataproviders.homeassistant_mqtt.mqtt_helper import HomeAssistantMQTTHelper
+from dataproviders.homeassistant_mqtt.mqtt_provider import HomeAssistantMQTTProvider
+from entrypoints.mqtt.mqtt_entrypoint import HomeAssistantMQTTEntrypoint
 from usecases.discovery_usecase import DiscoveryClimateDeviceUseCase
 
 logging.basicConfig(
@@ -34,6 +36,17 @@ def main():
     # )
     # dc_uc = DiscoveryClimateDeviceUseCase(daichi=daichi)
     # dc_uc.execute()
+    mqtt_entrypoint = HomeAssistantMQTTEntrypoint()
+    mqtt_provider = HomeAssistantMQTTProvider(
+        host=os.getenv('MQTT_HOST'),
+        port=int(os.getenv('MQTT_PORT')),
+        username=os.getenv('MQTT_USER'),
+        password=os.getenv('MQTT_PASS'),
+    )
+    mqtt_provider.set_entrypoint(entrypoint_func=mqtt_entrypoint.device_commands_entrypoint)
+    mqtt_provider.set_topics_for_subscribe(topic_mask=HomeAssistantMQTTHelper.get_mask_for_subscribe())
+
+
 
     log.debug(HomeAssistantMQTTHelper.classify_topic('dachi_cloud_climate/device_id_287350/ac/temperature/set'))
     log.debug(HomeAssistantMQTTHelper.extract_device_id('dachi_cloud_climate/device_id_287350/ac/temperature/set'))

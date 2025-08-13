@@ -1,0 +1,6 @@
+services:
+  bunkerm:
+    image: bunkeriot/bunkerm
+    ports:
+      - "1900:1900" # mqtt
+      - "2000:2000" # WebUI

@@ -26,3 +26,7 @@ class HomeAssistantMQTTHelper:
         if topic.startswith(MQTT_QUEUE_PROVIDER_TOPIC_CLIMATE_DEVICE):
             return True
         return False
+
+    @staticmethod
+    def get_mask_for_subscribe() -> str:
+        return f'{MQTT_QUEUE_PROVIDER_TOPIC_CLIMATE_DEVICE}/+/+'

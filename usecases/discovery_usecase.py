@@ -17,6 +17,7 @@ class DiscoveryClimateDeviceUseCase:
 
     def execute(self):
         buildings = self.daichi.get_buildings()
+        # TODO: Берем только первое строение, явно нужно переделать
         first_building = buildings.pop()
         for place in first_building.places:
             self._make_describe_of_device(place=place)
@@ -24,7 +25,7 @@ class DiscoveryClimateDeviceUseCase:
             self._publish_to_states(place=place)
             self._publish_to_sensor(place=place)
 
-    def _make_describe_of_device(self, place):
+    def _make_describe_of_device(self, place) -> MQTTDeviceClimateDescribe:
         min_temp = ClimateCommandsEnum.SET_TEMP.value.available_value[0]
         max_temp = ClimateCommandsEnum.SET_TEMP.value.available_value[1]
         device = MQTTDeviceClimateDescribe(
@@ -38,6 +39,8 @@ class DiscoveryClimateDeviceUseCase:
         )
         log.info(device.model_dump())
         log.info(device.discovery_device_climate_topic())
+
+        return device
 
     def _publish_to_mqtt_describe(self, place):
         pass

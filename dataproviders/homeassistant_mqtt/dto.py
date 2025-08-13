@@ -20,6 +20,10 @@ class MQTTDeviceTopicControlEnum(str, enum.Enum):
 class MQTTDeviceClimateDeviceDescribe(BaseModel):
     serial_number: Optional[str]
 
+    @computed_field()
+    def model(self) -> str:
+        return 'Daichi Cloud Climatizador'
+
 
 class MQTTDeviceClimateDescribe(BaseModel):
     original_dachi_cloud_id: int
