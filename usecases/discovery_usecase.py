@@ -3,6 +3,7 @@ import structlog
 from dataproviders.daichicloud.command_registry import ClimateCommandsEnum
 from dataproviders.daichicloud.daichicloud_api import DaichiCloudClient
 from dataproviders.homeassistant_mqtt.dto import MQTTDeviceClimateDescribe, MQTTDeviceClimateDeviceDescribe
+from dataproviders.homeassistant_mqtt.mqtt_provider import HomeAssistantMQTTProvider
 
 log = structlog.get_logger()
 
@@ -12,18 +13,19 @@ class DiscoveryClimateDeviceUseCase:
         Looking for device and publish to homeassistant
     """
 
-    def __init__(self, daichi: DaichiCloudClient):
+    def __init__(self, daichi: DaichiCloudClient, mqtt_provider: HomeAssistantMQTTProvider):
         self.daichi = daichi
+        self.mqtt_provider = mqtt_provider
 
     def execute(self):
         buildings = self.daichi.get_buildings()
         # TODO: Берем только первое строение, явно нужно переделать
         first_building = buildings.pop()
         for place in first_building.places:
-            self._make_describe_of_device(place=place)
-            self._publish_to_mqtt_describe(place=place)
-            self._publish_to_states(place=place)
-            self._publish_to_sensor(place=place)
+            self.mqtt_provider.publish_discovery(device=self._make_describe_of_device(place=place))
+            # self._publish_to_mqtt_describe(place=place)
+            # self._publish_to_states(place=place)
+            # self._publish_to_sensor(place=place)
 
     def _make_describe_of_device(self, place) -> MQTTDeviceClimateDescribe:
         min_temp = ClimateCommandsEnum.SET_TEMP.value.available_value[0]
@@ -37,9 +39,6 @@ class DiscoveryClimateDeviceUseCase:
                 serial_number=place.serial,
             )
         )
-        log.info(device.model_dump())
-        log.info(device.discovery_device_climate_topic())
-
         return device
 
     def _publish_to_mqtt_describe(self, place):
