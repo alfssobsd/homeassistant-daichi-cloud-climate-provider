@@ -1,5 +1,7 @@
 import logging
 import os.path
+import signal
+import threading
 from time import sleep
 
 import structlog
@@ -29,6 +31,7 @@ structlog.configure(
 log = structlog.get_logger()
 
 def main():
+    log.info("Application is running...")
     if os.path.exists('.env'):
         load_dotenv()
 
@@ -52,8 +55,6 @@ def main():
     dc_uc = DiscoveryClimateDeviceUseCase(daichi=daichi, mqtt_provider=mqtt_provider)
     dc_uc.execute()
 
-    sleep(10)
-
     # log.debug(HomeAssistantMQTTHelper.classify_topic('dachi_cloud_climate/device_id_287350/ac/temperature/set'))
     # log.debug(HomeAssistantMQTTHelper.extract_device_id('dachi_cloud_climate/device_id_287350/ac/temperature/set'))
     # log.debug(HomeAssistantMQTTHelper.classify_topic('dachi_cloud_climate/device_id_287350/ac/mode/state'))
@@ -61,6 +62,19 @@ def main():
     # log.debug(HomeAssistantMQTTHelper.classify_topic('bbb/device_id_287350/ac/mode/state'))
     # log.debug(HomeAssistantMQTTHelper.extract_device_id('bbb/device_id_287350sdsd/ac/mode/state'))
     # log.debug(HomeAssistantMQTTHelper.classify_topic('bbb/device_id_287350/ac/mode/33'))
+
+    thread_event = threading.Event()
+    def shutdown_by_signal(sig, frame):
+        log.info("Shutdown application by signal ctrl+c or SIGTERM")
+        thread_event.set() # Unblock .wait and stop
+
+    signal.signal(signal.SIGINT, shutdown_by_signal)
+    signal.signal(signal.SIGTERM, shutdown_by_signal)
+    thread_event.wait()
+
+    #Shutdown process
+    mqtt_provider.shutdown()
+
 
 if __name__ == "__main__":
     main()

@@ -29,6 +29,11 @@ class HomeAssistantMQTTProvider:
         log.info('Starting up MQTT Client')
         self.client_mqtt.loop_start()
 
+    def shutdown(self):
+        log.info('Shutdown MQTT Client')
+        self.client_mqtt.loop_stop()
+        self.client_mqtt.disconnect()
+
     def publish_discovery(self, device: MQTTDeviceClimateDescribe):
         log.debug(f'Publish device to topic={device.discovery_device_climate_topic()}, device={device.model_dump()}')
         self.client_mqtt.publish(
