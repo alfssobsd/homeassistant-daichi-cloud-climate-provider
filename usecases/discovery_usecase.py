@@ -41,11 +41,5 @@ class DiscoveryClimateDeviceUseCase:
         )
         return device
 
-    def _publish_to_mqtt_describe(self, place):
-        pass
-
-    def _publish_to_sensor(self, place):
-        pass
-
-    def _publish_to_states(self, place):
+    def _restore_states(self, place):
         pass

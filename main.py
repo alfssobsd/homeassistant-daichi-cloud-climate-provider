@@ -4,12 +4,14 @@ import signal
 import threading
 from time import sleep
 
+import schedule
 import structlog
 from dotenv import load_dotenv
 
 from dataproviders.daichicloud.daichicloud_api import DaichiCloudClient
 from dataproviders.homeassistant_mqtt.mqtt_helper import HomeAssistantMQTTHelper
 from dataproviders.homeassistant_mqtt.mqtt_provider import HomeAssistantMQTTProvider
+from entrypoints.cron.cron_entrypoint import CronEntrypoints
 from entrypoints.mqtt.mqtt_entrypoint import HomeAssistantMQTTEntrypoint
 from usecases.discovery_usecase import DiscoveryClimateDeviceUseCase
 
@@ -29,6 +31,21 @@ structlog.configure(
 )
 
 log = structlog.get_logger()
+
+def run_schedule_jobs(interval=5):
+    schedule_thread_event = threading.Event()
+
+    class ScheduleThread(threading.Thread):
+        @classmethod
+        def run(cls):
+            while not schedule_thread_event.is_set():
+                schedule.run_pending()
+                sleep(interval)
+
+    schedule_thread = ScheduleThread()
+    schedule_thread.start()
+    log.info("Background task starting...")
+    return schedule_thread_event
 
 def main():
     log.info("Application is running...")
@@ -52,21 +69,16 @@ def main():
     mqtt_provider.set_topics_for_subscribe(topic_mask=HomeAssistantMQTTHelper.get_mask_for_subscribe())
     mqtt_provider.loop_start()
 
-    dc_uc = DiscoveryClimateDeviceUseCase(daichi=daichi, mqtt_provider=mqtt_provider)
-    dc_uc.execute()
+    discovery_climate_uc = DiscoveryClimateDeviceUseCase(daichi=daichi, mqtt_provider=mqtt_provider)
+    cron_entrypoint = CronEntrypoints(discovery_climate_uc=discovery_climate_uc)
+    cron_entrypoint.start_cron()
 
-    # log.debug(HomeAssistantMQTTHelper.classify_topic('dachi_cloud_climate/device_id_287350/ac/temperature/set'))
-    # log.debug(HomeAssistantMQTTHelper.extract_device_id('dachi_cloud_climate/device_id_287350/ac/temperature/set'))
-    # log.debug(HomeAssistantMQTTHelper.classify_topic('dachi_cloud_climate/device_id_287350/ac/mode/state'))
-    # log.debug(HomeAssistantMQTTHelper.extract_device_id('dachi_cloud_climate/device_287350/ac/mode/state'))
-    # log.debug(HomeAssistantMQTTHelper.classify_topic('bbb/device_id_287350/ac/mode/state'))
-    # log.debug(HomeAssistantMQTTHelper.extract_device_id('bbb/device_id_287350sdsd/ac/mode/state'))
-    # log.debug(HomeAssistantMQTTHelper.classify_topic('bbb/device_id_287350/ac/mode/33'))
-
+    thread_schedule_event = run_schedule_jobs(interval=5)
     thread_event = threading.Event()
-    def shutdown_by_signal(sig, frame):
-        log.info("Shutdown application by signal ctrl+c or SIGTERM")
+    def shutdown_by_signal(sig, _):
+        log.info(f'Shutdown application by signal {sig} ({signal.Signals(sig).name})')
         thread_event.set() # Unblock .wait and stop
+        thread_schedule_event.set()
 
     signal.signal(signal.SIGINT, shutdown_by_signal)
     signal.signal(signal.SIGTERM, shutdown_by_signal)

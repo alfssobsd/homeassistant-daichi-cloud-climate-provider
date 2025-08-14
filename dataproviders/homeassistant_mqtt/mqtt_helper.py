@@ -29,4 +29,4 @@ class HomeAssistantMQTTHelper:
 
     @staticmethod
     def get_mask_for_subscribe() -> str:
-        return f'{MQTT_QUEUE_PROVIDER_TOPIC_CLIMATE_DEVICE}/+/+/+/+'
+        return f'{MQTT_QUEUE_PROVIDER_TOPIC_CLIMATE_DEVICE}/+/+/+/set'
