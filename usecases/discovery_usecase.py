@@ -2,8 +2,9 @@ import structlog
 
 from dataproviders.daichicloud.command_registry import ClimateCommandsEnum
 from dataproviders.daichicloud.daichicloud_api import DaichiCloudClient
+from dataproviders.daichicloud.dto import Place
 from dataproviders.homeassistant_mqtt.dto import MQTTDeviceClimateDescribe, MQTTDeviceClimateDeviceDescribe
-from dataproviders.homeassistant_mqtt.mqtt_provider import HomeAssistantMQTTProvider
+from dataproviders.homeassistant_mqtt.mqtt_provider import HomeAssistantMQTTClimateProvider
 
 log = structlog.get_logger()
 
@@ -13,7 +14,7 @@ class DiscoveryClimateDeviceUseCase:
         Looking for device and publish to homeassistant
     """
 
-    def __init__(self, daichi: DaichiCloudClient, mqtt_provider: HomeAssistantMQTTProvider):
+    def __init__(self, daichi: DaichiCloudClient, mqtt_provider: HomeAssistantMQTTClimateProvider):
         self.daichi = daichi
         self.mqtt_provider = mqtt_provider
 
@@ -22,12 +23,13 @@ class DiscoveryClimateDeviceUseCase:
         # TODO: Берем только первое строение, явно нужно переделать
         first_building = buildings.pop()
         for place in first_building.places:
-            self.mqtt_provider.publish_discovery(device=self._make_describe_of_device(place=place))
-            # self._publish_to_mqtt_describe(place=place)
+            device = self._make_describe_of_device(place=place)
+            self.mqtt_provider.publish_discovery(device=device)
+            self._restore_states(device=device, place=place)
             # self._publish_to_states(place=place)
             # self._publish_to_sensor(place=place)
 
-    def _make_describe_of_device(self, place) -> MQTTDeviceClimateDescribe:
+    def _make_describe_of_device(self, place: Place) -> MQTTDeviceClimateDescribe:
         min_temp = ClimateCommandsEnum.SET_TEMP.value.available_value[0]
         max_temp = ClimateCommandsEnum.SET_TEMP.value.available_value[1]
         device = MQTTDeviceClimateDescribe(
@@ -41,5 +43,16 @@ class DiscoveryClimateDeviceUseCase:
         )
         return device
 
-    def _restore_states(self, place):
-        pass
+    def _restore_states(self, device: MQTTDeviceClimateDescribe, place: Place):
+        # TODO: Доделать реализацию
+        if place.sensor_temp is not None:
+            self.mqtt_provider.publish_state(state_topic=device.temperature_state_topic(), payload=place.sensor_temp)
+
+        if place.state.is_on:
+            self.mqtt_provider.publish_state(state_topic=device.power_command_topic(), payload="ON")
+        else:
+            self.mqtt_provider.publish_state(state_topic=device.power_command_topic(), payload="OFF")
+
+        # if place.sensor_temp is not None:
+        #     self.mqtt_provider.publish_state(state_topic=device.temperature_state_topic(), payload=place.sensor_temp)
+

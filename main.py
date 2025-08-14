@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 from dataproviders.daichicloud.daichicloud_api import DaichiCloudClient
 from dataproviders.homeassistant_mqtt.mqtt_helper import HomeAssistantMQTTHelper
-from dataproviders.homeassistant_mqtt.mqtt_provider import HomeAssistantMQTTProvider
+from dataproviders.homeassistant_mqtt.mqtt_provider import HomeAssistantMQTTClimateProvider
 from entrypoints.cron.cron_entrypoint import CronEntrypoints
 from entrypoints.mqtt.mqtt_entrypoint import HomeAssistantMQTTEntrypoint
 from usecases.discovery_usecase import DiscoveryClimateDeviceUseCase
@@ -59,7 +59,7 @@ def main():
 
 
     mqtt_entrypoint = HomeAssistantMQTTEntrypoint()
-    mqtt_provider = HomeAssistantMQTTProvider(
+    mqtt_provider = HomeAssistantMQTTClimateProvider(
         host=os.getenv('MQTT_HOST'),
         port=int(os.getenv('MQTT_PORT')),
         username=os.getenv('MQTT_USER'),
