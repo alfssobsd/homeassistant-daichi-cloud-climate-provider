@@ -5,6 +5,7 @@ from dataproviders.daichicloud.daichicloud_api import DaichiCloudClient
 from dataproviders.daichicloud.dto import Place
 from dataproviders.homeassistant_mqtt.dto import MQTTDeviceClimateDescribe, MQTTDeviceClimateDeviceDescribe
 from dataproviders.homeassistant_mqtt.mqtt_provider import HomeAssistantMQTTClimateProvider
+from usecases.restore_state_usecase import RestoreStateClimateDeviceUseCase
 
 log = structlog.get_logger()
 
@@ -17,6 +18,7 @@ class DiscoveryClimateDeviceUseCase:
     def __init__(self, daichi: DaichiCloudClient, mqtt_provider: HomeAssistantMQTTClimateProvider):
         self.daichi = daichi
         self.mqtt_provider = mqtt_provider
+        self.restore_state_uc = RestoreStateClimateDeviceUseCase(mqtt_provider = mqtt_provider)
 
     def execute(self):
         buildings = self.daichi.get_buildings()
@@ -25,9 +27,7 @@ class DiscoveryClimateDeviceUseCase:
         for place in first_building.places:
             device = self._make_describe_of_device(place=place)
             self.mqtt_provider.publish_discovery(device=device)
-            self._restore_states(device=device, place=place)
-            # self._publish_to_states(place=place)
-            # self._publish_to_sensor(place=place)
+            self.restore_state_uc.execute(device=device, place=place)
 
     def _make_describe_of_device(self, place: Place) -> MQTTDeviceClimateDescribe:
         min_temp = ClimateCommandsEnum.SET_TEMP.value.available_value[0]
@@ -42,17 +42,3 @@ class DiscoveryClimateDeviceUseCase:
             )
         )
         return device
-
-    def _restore_states(self, device: MQTTDeviceClimateDescribe, place: Place):
-        # TODO: Доделать реализацию
-        if place.sensor_temp is not None:
-            self.mqtt_provider.publish_state(state_topic=device.temperature_state_topic(), payload=place.sensor_temp)
-
-        if place.state.is_on:
-            self.mqtt_provider.publish_state(state_topic=device.power_command_topic(), payload="ON")
-        else:
-            self.mqtt_provider.publish_state(state_topic=device.power_command_topic(), payload="OFF")
-
-        # if place.sensor_temp is not None:
-        #     self.mqtt_provider.publish_state(state_topic=device.temperature_state_topic(), payload=place.sensor_temp)
-

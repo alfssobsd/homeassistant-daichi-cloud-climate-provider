@@ -140,7 +140,7 @@ class PlaceDetailItem(BaseModel):
             case 'fanSpeedAuto_active':
                 return ClimateStatePayload(
                     climate_state_type=ClimateStatePayloadTypeEnum.FAN_SPEED,
-                    command=ClimateCommandsEnum.SET_CLIMATE_MODE_AUTO,
+                    command=ClimateCommandsEnum.SET_FAN_SPEED_AUTO,
                     value=True
                 )
 
@@ -186,7 +186,7 @@ class PlaceDetailItem(BaseModel):
                     value=int(set_temp)
                 )
             if '°F' in self.text:
-                set_temp = self.text.replace('°C', '').strip()
+                set_temp = self.text.replace('°F', '').strip()
                 return ClimateStatePayload(
                     climate_state_type=ClimateStatePayloadTypeEnum.SET_TEMP_F,
                     command=ClimateCommandsEnum.SET_TEMP,

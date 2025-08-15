@@ -15,7 +15,6 @@ class MQTTDeviceTopicControlEnum(str, enum.Enum):
     TEMPERATURE_SET = 'ac/temperature/set'
     TEMPERATURE_STATE = 'ac/temperature/state'
     TEMPERATURE_CURRENT = 'ac/temperature_curr/state'
-    POWER_SET = 'ac/power/set'
     UNKNOWN = 'unknown'
 
 
@@ -84,10 +83,6 @@ class MQTTDeviceClimateDescribe(BaseModel):
     @computed_field
     def current_temperature_topic(self) -> str:
         return f'{MQTT_QUEUE_PROVIDER_TOPIC_CLIMATE_DEVICE}/{self._node_id_device_id()}/{MQTTDeviceTopicControlEnum.TEMPERATURE_CURRENT.value}'
-
-    @computed_field
-    def power_command_topic(self) -> str:
-        return f'{MQTT_QUEUE_PROVIDER_TOPIC_CLIMATE_DEVICE}/{self._node_id_device_id()}/{MQTTDeviceTopicControlEnum.POWER_SET.value}'
 
     def _node_id_device_id(self):
         return f'{MQTT_QUEUE_HOMEASSISTANT_DEVICE_ID_PREFIX}{self.original_dachi_cloud_id}'
