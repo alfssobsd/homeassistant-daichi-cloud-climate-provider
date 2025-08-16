@@ -3,6 +3,10 @@
 The implementation is written using open information obtained through open repositories and web sites
 I don't have a goal to benefit from this software solution.
 
+### TODO Function
+[] filter by buildings 
+[] filter by devices
+
 ## Features
 
 - Control general parameters like fans speed, mode, temperature, etc

@@ -16,11 +16,11 @@ class HomeAssistantMQTTEntrypoint:
         if HomeAssistantMQTTHelper.has_support_topic(message.topic):
             topic_type = HomeAssistantMQTTHelper.classify_topic(message.topic)
             daichi_cloud_device_id = HomeAssistantMQTTHelper.extract_device_id(message.topic)
-            log.debug(f'Received message: topic={message.topic} '
+            log.info(f'Received message: topic={message.topic} '
                       f'topic_type={topic_type} daichi_cloud_device_id={daichi_cloud_device_id} '
                       f'payload={message.payload.decode()}')
             self.apply_commands_uc.execute(device_id=int(daichi_cloud_device_id),
                                            topic_type=topic_type,
                                            payload=message.payload.decode())
         else:
-            log.debug("Unsupport topic={message.topic}")
+            log.error(f"Unsupport topic={message.topic}")

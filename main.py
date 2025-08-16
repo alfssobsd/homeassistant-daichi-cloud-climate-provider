@@ -9,10 +9,12 @@ import structlog
 from dotenv import load_dotenv
 
 from dataproviders.daichicloud.daichicloud_api import DaichiCloudClient
+from dataproviders.device_repository.device_repo import ClimateDeviceRepository
 from dataproviders.homeassistant_mqtt.mqtt_helper import HomeAssistantMQTTHelper
 from dataproviders.homeassistant_mqtt.mqtt_provider import HomeAssistantMQTTClimateProvider
 from entrypoints.cron.cron_entrypoint import CronEntrypoints
 from entrypoints.mqtt.mqtt_entrypoint import HomeAssistantMQTTEntrypoint
+from usecases.apply_commands_usecase import ApplyCommandsUseCase
 from usecases.discovery_usecase import DiscoveryClimateDeviceUseCase
 
 logging.basicConfig(
@@ -32,6 +34,7 @@ structlog.configure(
 
 log = structlog.get_logger()
 
+
 def run_schedule_jobs(interval=5):
     schedule_thread_event = threading.Event()
 
@@ -47,6 +50,7 @@ def run_schedule_jobs(interval=5):
     log.info("Background task starting...")
     return schedule_thread_event
 
+
 def main():
     log.info("Application is running...")
     if os.path.exists('.env'):
@@ -57,34 +61,40 @@ def main():
         password=os.getenv('DAICHI_PASS')
     )
 
-
-    mqtt_entrypoint = HomeAssistantMQTTEntrypoint()
     mqtt_provider = HomeAssistantMQTTClimateProvider(
         host=os.getenv('MQTT_HOST'),
         port=int(os.getenv('MQTT_PORT')),
         username=os.getenv('MQTT_USER'),
         password=os.getenv('MQTT_PASS'),
     )
+
+    climate_device_repo = ClimateDeviceRepository()
+
+    apply_commands_uc = ApplyCommandsUseCase(daichi=daichi, mqtt_provider=mqtt_provider)
+    mqtt_entrypoint = HomeAssistantMQTTEntrypoint(apply_commands_uc=apply_commands_uc)
     mqtt_provider.set_entrypoint(entrypoint_func=mqtt_entrypoint.device_commands_entrypoint)
     mqtt_provider.set_topics_for_subscribe(topic_mask=HomeAssistantMQTTHelper.get_mask_for_subscribe())
     mqtt_provider.loop_start()
 
-    discovery_climate_uc = DiscoveryClimateDeviceUseCase(daichi=daichi, mqtt_provider=mqtt_provider)
+    discovery_climate_uc = DiscoveryClimateDeviceUseCase(daichi=daichi,
+                                                         climate_device_repo=climate_device_repo,
+                                                         mqtt_provider=mqtt_provider)
     cron_entrypoint = CronEntrypoints(discovery_climate_uc=discovery_climate_uc)
     cron_entrypoint.start_cron()
 
     thread_schedule_event = run_schedule_jobs(interval=5)
     thread_event = threading.Event()
+
     def shutdown_by_signal(sig, _):
         log.info(f'Shutdown application by signal {sig} ({signal.Signals(sig).name})')
-        thread_event.set() # Unblock .wait and stop
+        thread_event.set()  # Unblock .wait and stop
         thread_schedule_event.set()
 
     signal.signal(signal.SIGINT, shutdown_by_signal)
     signal.signal(signal.SIGTERM, shutdown_by_signal)
     thread_event.wait()
 
-    #Shutdown process
+    # Shutdown process
     mqtt_provider.shutdown()
 
 
