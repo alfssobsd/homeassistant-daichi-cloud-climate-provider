@@ -47,6 +47,7 @@ class DiscoveryClimateDeviceUseCase:
             max_temp=max_temp,
             device=MQTTDeviceClimateDeviceDescribe(
                 serial_number=place.serial,
+                name=f'Air Conditioner',
             )
         )
         return device
