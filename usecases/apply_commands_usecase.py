@@ -103,7 +103,7 @@ class ApplyCommandsUseCase:
                 device_state.enable_mute_sound = True
 
         for apply_item in _for_apply:
-            log.info(f'Execute commands {apply_item['command']} for device_id={device_id}')
+            log.info(f"Execute commands {apply_item['command']} for device_id={device_id}")
             self.daichi.execute_command(device_id=device_id, command=apply_item['command'],
                                         payload=apply_item['payload'])
 
