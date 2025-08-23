@@ -1,21 +1,22 @@
 import logging
 import os.path
 import signal
+import sys
 import threading
+import traceback
 from time import sleep
 
 import schedule
 import structlog
+from dependency_injector.wiring import Provide, inject
 from dotenv import load_dotenv
+from pydantic.v1 import ValidationError
 
-from dataproviders.daichicloud.daichicloud_api import DaichiCloudClient
-from dataproviders.device_repository.device_repo import ClimateDeviceRepository
+from conf.di_container_setup import Container
 from dataproviders.homeassistant_mqtt.mqtt_helper import HomeAssistantMQTTHelper
 from dataproviders.homeassistant_mqtt.mqtt_provider import HomeAssistantMQTTClimateProvider
-from entrypoints.cron.cron_entrypoint import CronEntrypoints
+from entrypoints.cron.cron_entrypoint import CronEntrypoint
 from entrypoints.mqtt.mqtt_entrypoint import HomeAssistantMQTTEntrypoint
-from usecases.apply_commands_usecase import ApplyCommandsUseCase
-from usecases.discovery_usecase import DiscoveryClimateDeviceUseCase
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -51,52 +52,52 @@ def run_schedule_jobs(interval=5):
     return schedule_thread_event
 
 
-def main():
-    log.info("Application is running...")
-    if os.path.exists('.env'):
-        load_dotenv()
-
-    daichi = DaichiCloudClient(
-        username=os.getenv('DAICHI_USER'),
-        password=os.getenv('DAICHI_PASS')
-    )
-
-    mqtt_provider = HomeAssistantMQTTClimateProvider(
-        host=os.getenv('MQTT_HOST'),
-        port=int(os.getenv('MQTT_PORT')),
-        username=os.getenv('MQTT_USER'),
-        password=os.getenv('MQTT_PASS'),
-    )
-
-    climate_device_repo = ClimateDeviceRepository()
-
-    apply_commands_uc = ApplyCommandsUseCase(daichi=daichi, mqtt_provider=mqtt_provider)
-    mqtt_entrypoint = HomeAssistantMQTTEntrypoint(apply_commands_uc=apply_commands_uc)
+@inject
+def main(
+        mqtt_provider: HomeAssistantMQTTClimateProvider = Provide[Container.mqtt_provider],
+        mqtt_entrypoint: HomeAssistantMQTTEntrypoint = Provide[Container.mqtt_entrypoint],
+        cron_entrypoint: CronEntrypoint = Provide[Container.cron_entrypoint],
+) -> None:
+    # Start MQTT
     mqtt_provider.set_entrypoint(entrypoint_func=mqtt_entrypoint.device_commands_entrypoint)
     mqtt_provider.set_topics_for_subscribe(topic_mask=HomeAssistantMQTTHelper.get_mask_for_subscribe())
     mqtt_provider.loop_start()
-
-    discovery_climate_uc = DiscoveryClimateDeviceUseCase(daichi=daichi,
-                                                         climate_device_repo=climate_device_repo,
-                                                         mqtt_provider=mqtt_provider)
-    cron_entrypoint = CronEntrypoints(discovery_climate_uc=discovery_climate_uc)
+    ## Start Cron
     cron_entrypoint.start_cron()
 
-    thread_schedule_event = run_schedule_jobs(interval=5)
-    thread_event = threading.Event()
+    cron_thread_event = run_schedule_jobs(interval=5)
+    main_thread_event = threading.Event()
 
     def shutdown_by_signal(sig, _):
         log.info(f'Shutdown application by signal {sig} ({signal.Signals(sig).name})')
-        thread_event.set()  # Unblock .wait and stop
-        thread_schedule_event.set()
+        main_thread_event.set()  # Unblock .wait and stop
+        cron_thread_event.set()
 
     signal.signal(signal.SIGINT, shutdown_by_signal)
     signal.signal(signal.SIGTERM, shutdown_by_signal)
-    thread_event.wait()
+    main_thread_event.wait()
 
     # Shutdown process
     mqtt_provider.shutdown()
 
 
 if __name__ == "__main__":
-    main()
+    log.info("Application is running...")
+    if os.path.exists('.env'):
+        log.info("Loading .env file ...")
+        load_dotenv()
+
+    try:
+        container = Container()
+
+        try:
+            config_obj = container.config(**os.environ)
+        except ValidationError as e:
+            log.error(f'Error environment vars: {e}')
+            exit(1)
+
+        container.wire(modules=[__name__])
+        main(*sys.argv[1:])
+    except Exception as e:
+        log.error(f'Stop running, error: {e}, {type(e).__name__}')
+        traceback.print_exc()

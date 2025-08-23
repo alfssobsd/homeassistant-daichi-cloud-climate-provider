@@ -2,6 +2,7 @@ from json import JSONDecodeError
 
 import requests
 import random
+import structlog
 
 from dataproviders.daichicloud.command_registry import ClimateCommandsEnum, ClimateCommandFunctionTypeEnum
 from dataproviders.daichicloud.dto import UserData, Building, ControlRequest, ControlSetValueRequest, ControlResponse, \
@@ -12,6 +13,7 @@ from dataproviders.daichicloud.exceptions import DaichiCloudException, DaichiClo
 _DAICHI_MIN_RAND = 1
 _DAICHI_MAX_RAND = 99999999
 
+log = structlog.get_logger()
 
 class DaichiCloudClient:
     def __init__(self, username, password,

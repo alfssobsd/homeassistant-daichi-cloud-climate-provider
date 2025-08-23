@@ -1,4 +1,6 @@
+from typing import Optional
 from pydantic import BaseModel
+from pydantic.v1 import validator
 
 
 class ClimateDeviceEntity(BaseModel):
@@ -6,12 +8,28 @@ class ClimateDeviceEntity(BaseModel):
     climate_device_id: int
 
     # Mode
-    mode_state: str = None
+    mode_state: Optional[str] = None
+
+    @validator('mode_state')
+    def mode_state_must_be_valid(cls, v):
+        allowed = {"off", "cool", "heat", "auto", "fan_only", "dry"}
+        if v is not None and v not in allowed:
+            raise ValueError(f"mode_state must be one of {allowed}")
+        return v
+
     # daichi_cloud_climate/device_id_xxxxx/ac/mode/state
     mode_state_topic: str
 
     # Fan
-    fan_mode_state: str = None
+    fan_mode_state: Optional[str] = None
+
+    @validator('fan_mode_state')
+    def fan_mode_state_must_be_valid(cls, v):
+        allowed = {"auto", "low", "medium", "high"}
+        if v is not None and v not in allowed:
+            raise ValueError(f"fan_mode_state must be one of {allowed}")
+        return v
+
     # daichi_cloud_climate/device_id_xxxxx/ac/fan/state
     fan_mode_state_topic: str
 

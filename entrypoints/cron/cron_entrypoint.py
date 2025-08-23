@@ -8,7 +8,7 @@ from usecases.discovery_usecase import DiscoveryClimateDeviceUseCase
 log = structlog.get_logger()
 
 
-class CronEntrypoints:
+class CronEntrypoint:
 
     def __init__(self, discovery_climate_uc: DiscoveryClimateDeviceUseCase, auto_discovery_minutes: int = 30):
         self.discovery_climate_uc = discovery_climate_uc
@@ -25,3 +25,4 @@ class CronEntrypoints:
     def periodic_discovery_devices_and_restore_state(self):
         log.info('Looking for devices or update state...')
         self.discovery_climate_uc.execute()
+        # raise Exception("BUMP")

@@ -10,6 +10,11 @@ class RestoreStateClimateDeviceUseCase:
         self.mqtt_provider = mqtt_provider
 
     def execute(self, climate_device_id: int):
+        """
+            Get device by id and restore state in mqtt
+        :param climate_device_id:
+        :return: None
+        """
         climate_device_entity = self.climate_device_repo.get_by_id(climate_device_id=climate_device_id)
         if climate_device_entity is not None:
             if climate_device_entity.current_temperature_state is not None:

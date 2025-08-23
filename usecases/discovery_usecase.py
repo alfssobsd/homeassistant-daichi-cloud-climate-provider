@@ -13,20 +13,21 @@ log = structlog.get_logger()
 
 
 class DiscoveryClimateDeviceUseCase:
-    """
-        Looking for device and publish to homeassistant
-    """
-
     def __init__(self, daichi: DaichiCloudClient,
                  climate_device_repo: ClimateDeviceRepository,
+                 restore_state_uc: RestoreStateClimateDeviceUseCase,
                  mqtt_provider: HomeAssistantMQTTClimateProvider):
         self.daichi = daichi
         self.climate_device_repo = climate_device_repo
         self.mqtt_provider = mqtt_provider
-        self.restore_state_uc = RestoreStateClimateDeviceUseCase(mqtt_provider=mqtt_provider,
-                                                                 climate_device_repo=climate_device_repo)
+        self.restore_state_uc = restore_state_uc
 
     def execute(self):
+        """
+            Search device in daichi cloud,
+            publish discovery to homeassistant and restore state of devices
+        :return: None
+        """
         buildings = self.daichi.get_buildings()
         for building in buildings:
             for place in building.places:
@@ -34,10 +35,15 @@ class DiscoveryClimateDeviceUseCase:
                 self.mqtt_provider.publish_discovery(device=device)
 
                 _climate_device_entity = self._make_climate_device_entity(mqtt_device_describe=device, place=place)
-                self.climate_device_repo.set_device(climate_device = _climate_device_entity)
+                self.climate_device_repo.set_device(climate_device=_climate_device_entity)
                 self.restore_state_uc.execute(climate_device_id=_climate_device_entity.climate_device_id)
 
     def _make_describe_of_device(self, place: Place) -> MQTTDeviceClimateDescribe:
+        """
+            Make and return MQTTDeviceClimateDescribe for publish to mqtt homeassistant
+        :param place:
+        :return: MQTTDeviceClimateDescribe
+        """
         min_temp = ClimateCommandsEnum.SET_TEMP.value.available_value[0]
         max_temp = ClimateCommandsEnum.SET_TEMP.value.available_value[1]
         device = MQTTDeviceClimateDescribe(
@@ -54,6 +60,12 @@ class DiscoveryClimateDeviceUseCase:
     def _make_climate_device_entity(self,
                                     mqtt_device_describe: MQTTDeviceClimateDescribe,
                                     place: Place) -> ClimateDeviceEntity:
+        """
+            Make and return ClimateDeviceEntity for state device
+        :param mqtt_device_describe:
+        :param place:
+        :return: ClimateDeviceEntity
+        """
 
         _command_to_state = {
             # Mode [ "cool", "heat", "auto", "fan_only", "dry"]

@@ -15,7 +15,8 @@ class HomeAssistantMQTTClimateProvider:
         log.debug(f'Init MQTT Client username={username}, host={host}, port={port}, transport={transport}')
         self.client_mqtt = client.Client(client_id='HomeAssistantMQTTProvider', transport=transport)
         self.client_mqtt.username_pw_set(username=username, password=password)
-        self.client_mqtt.connect(host=host, port=port, keepalive=60)
+        self.host = host
+        self.port = port
 
     def set_entrypoint(self, entrypoint_func):
         log.debug(f'MQTT set entrypoint func {entrypoint_func.__qualname__}')
@@ -27,6 +28,7 @@ class HomeAssistantMQTTClimateProvider:
 
     def loop_start(self):
         log.info('Starting up MQTT Client')
+        self.client_mqtt.connect(host=self.host, port=self.port, keepalive=60)
         self.client_mqtt.loop_start()
 
     def shutdown(self):

@@ -27,3 +27,16 @@ I don't have a goal to benefit from this software solution.
 3. brew install mqttui
 4. read mqttui -b mqtt://localhost:1900 --username admin --password admin
 5. publish mqttui -b mqtt://localhost:1900 --username admin --password admin publish test 23
+
+## How to run in docker 
+````bash
+docker run --rm \                                                                                                                             1 ↵
+  -e DAICHI_USER='user@domain.net' \
+  -e DAICHI_PASS='you_passwotd' \
+  -e MQTT_HOST="MQTT-host" \
+  -e MQTT_PORT="1900" \
+  -e MQTT_USER="admin" \
+  -e MQTT_PASS="admin" \
+  -e APP_ENABLE_MUTE_SOUND="True" \
+  cr.yandex/crpt6a9sphouc986n0ji/homeassistant-daichi-cloud-climate-provider:20250822
+````
