@@ -105,8 +105,8 @@ class ApplyCommandsUseCase:
             self.daichi.execute_command(device_id=device_id, command=apply_item['command'],
                                         payload=apply_item['payload'])
 
-            log.debug(f'Wait 1 seconds between commands')
-            sleep(1)
+            log.debug(f'Wait 0.2 seconds between commands')
+            sleep(0.2)
 
         # Set state after execute commands
         self.climate_device_repo.set_device(climate_device=device_state)

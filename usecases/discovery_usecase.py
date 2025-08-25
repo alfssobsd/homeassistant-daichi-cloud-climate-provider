@@ -16,11 +16,17 @@ class DiscoveryClimateDeviceUseCase:
     def __init__(self, daichi: DaichiCloudClient,
                  climate_device_repo: ClimateDeviceRepository,
                  restore_state_uc: RestoreStateClimateDeviceUseCase,
-                 mqtt_provider: HomeAssistantMQTTClimateProvider):
+                 mqtt_provider: HomeAssistantMQTTClimateProvider,
+                 buildings_filter: str,
+                 places_filter: str, ):
         self.daichi = daichi
         self.climate_device_repo = climate_device_repo
         self.mqtt_provider = mqtt_provider
         self.restore_state_uc = restore_state_uc
+        self.buildings_filter = [building.strip() for building in buildings_filter.split(',') if building.strip()]
+        self.places_filter = [place.strip() for place in places_filter.split(',') if place.strip()]
+        log.info(f'buildings_filter = {self.buildings_filter}')
+        log.info(f'places_filter = {self.places_filter}')
 
     def execute(self):
         """
@@ -30,7 +36,17 @@ class DiscoveryClimateDeviceUseCase:
         """
         buildings = self.daichi.get_buildings()
         for building in buildings:
+            if len(self.buildings_filter) > 0:
+                if building.title not in self.buildings_filter:
+                    log.info(f'building = "{building.title}" skip')
+                    continue
+
             for place in building.places:
+                if len(self.places_filter) > 0:
+                    if place.title not in self.places_filter:
+                        log.info(f'place = "{place.title}" skip')
+                        continue
+
                 device = self._make_describe_of_device(place=place)
                 self.mqtt_provider.publish_discovery(device=device)
 

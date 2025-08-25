@@ -10,13 +10,14 @@ log = structlog.get_logger()
 
 class CronEntrypoint:
 
-    def __init__(self, discovery_climate_uc: DiscoveryClimateDeviceUseCase, auto_discovery_minutes: int = 30):
+    def __init__(self, discovery_climate_uc: DiscoveryClimateDeviceUseCase, discovery_interval_minutes: int = 30):
         self.discovery_climate_uc = discovery_climate_uc
-        self.auto_discovery_minutes = auto_discovery_minutes
+        self.discovery_interval_minutes = discovery_interval_minutes
+        log.info(f'Discovery interval {discovery_interval_minutes} minutes')
 
     def setup_cron(self):
-        log.info(f'Setup auto-discovery every {self.auto_discovery_minutes} minutes')
-        self.task_auto_discovery = schedule.every(self.auto_discovery_minutes).minutes.do(
+        log.info(f'Setup auto-discovery every {self.discovery_interval_minutes} minutes')
+        self.task_auto_discovery = schedule.every(self.discovery_interval_minutes).minutes.do(
             self.periodic_discovery_devices_and_restore_state)
 
         log.info(f'Force run on start in 2 seconds')

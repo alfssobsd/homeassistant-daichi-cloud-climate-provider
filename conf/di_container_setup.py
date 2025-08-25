@@ -19,6 +19,9 @@ class AppConfig(BaseModel):
     MQTT_USER: str = Field(..., alias="MQTT_USER")
     MQTT_PASS: str = Field(..., alias="MQTT_PASS")
     APP_ENABLE_MUTE_SOUND: bool = Field(..., alias="APP_ENABLE_MUTE_SOUND")
+    APP_DISCOVERY_INTERVAL_MINUTES: int = Field(30, alias="APP_DISCOVERY_INTERVAL_MINUTES")
+    APP_FILTER_BUILDINGS: str = Field('', alias="APP_FILTER_BUILDINGS")
+    APP_FILTER_PLACES: str = Field('', alias="APP_FILTER_PLACES")
 
 
 class Container(containers.DeclarativeContainer):
@@ -70,6 +73,8 @@ class Container(containers.DeclarativeContainer):
         climate_device_repo=climate_device_repo,
         mqtt_provider=mqtt_provider,
         restore_state_uc=restore_state_uc,
+        buildings_filter=providers.Callable(lambda cfg: cfg.APP_FILTER_BUILDINGS, config),
+        places_filter=providers.Callable(lambda cfg: cfg.APP_FILTER_PLACES, config),
     )
 
     # Entrypoints
@@ -81,4 +86,5 @@ class Container(containers.DeclarativeContainer):
     cron_entrypoint = providers.Singleton(
         CronEntrypoint,
         discovery_climate_uc=discovery_climate_uc,
+        discovery_interval_minutes=providers.Callable(lambda cfg: cfg.APP_DISCOVERY_INTERVAL_MINUTES, config),
     )

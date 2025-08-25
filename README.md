@@ -9,9 +9,8 @@ I don't have a goal to benefit from this software solution.
 - [x] Discovery devices and publish to MQTT
 - [x] Receive commands Homeassistant from MQTT and execute by API
 - [x] Enable silent mode
-- [] filter by buildings and devices
-- [] enable discovery interval setup
-- [] order of command and check result
+- [х] filter by buildings and devices
+- [x] enable discovery interval setup
 
 ## How to use from source
 
@@ -23,6 +22,8 @@ I don't have a goal to benefit from this software solution.
 1. MQTT_USER=admin # home assistant mqtt user
 1. MQTT_PASS=admin # home assistant mqtt pass
 1. APP_ENABLE_MUTE_SOUND=True # enable or disable silent mode
+1. APP_FILTER_BUILDINGS='Moscow' # Device only from building with name Moscow. Empty string, disable filter
+1. APP_FILTER_PLACES='Bed Room, Living Room' # Device only from place with one of name Bed Room, Living Room. Empty string, disable filter
 1. Install Python 3.12
 1. Install requirements `pip install -r requirements.txt`
 1. `python main.py`
