@@ -1,11 +1,11 @@
-# Имя образа
-IMAGE_REGISTRY = cr.yandex/crpt6a9sphouc986n0ji
+# images
+IMAGE_PUBLIC_REGISTRY = alfss
 IMAGE_NAME = homeassistant-daichi-cloud-climate-provider
 
-# Получить последний git tag или пустую строку
+# get current tag
 GIT_TAG := $(shell git describe --tags --exact-match 2>/dev/null || echo "")
 
-# Если GIT_TAG пустой, ставим дату YYYYMMDD
+# set default value YYYYMMDD if this not git tag
 ifeq ($(GIT_TAG),)
     TAG := $(shell date +%Y%m%d)
 else
@@ -14,11 +14,12 @@ endif
 
 .PHONY: build
 
-build:
-	docker build -t $(IMAGE_REGISTRY)/$(IMAGE_NAME):$(TAG) .
+# Make and publish
+build_for_public:
+	podman build -t $(IMAGE_PUBLIC_REGISTRY)/$(IMAGE_NAME):$(TAG) .
 
-build_podman:
-	podman build -t $(IMAGE_REGISTRY)/$(IMAGE_NAME):$(TAG) .
+publish_public:
+	podman push $(IMAGE_PUBLIC_REGISTRY)/$(IMAGE_NAME):$(TAG)
 
-print-tag:
+print_tag:
 	@echo "Docker image tag: $(TAG)"

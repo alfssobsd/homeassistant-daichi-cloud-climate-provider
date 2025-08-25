@@ -1,22 +1,43 @@
-# Simple provider for control climate conditioner in daichi cloud
+# Control air conditioner in daichi cloud for homeassistant
 
 The implementation is written using open information obtained through open repositories and web sites
 I don't have a goal to benefit from this software solution.
 
-### TODO Function
-[] filter by buildings 
-[] filter by devices
-
 ## Features
 
-- Control general parameters like fans speed, mode, temperature, etc
-- Discovery devices and publish to MQTT
-- Receive commands Homeassistant from MQTT and execute by API
+- [x] Control general parameters like fans speed, mode, temperature, etc
+- [x] Discovery devices and publish to MQTT
+- [x] Receive commands Homeassistant from MQTT and execute by API
+- [x] Enable silent mode
+- [] filter by buildings and devices
 
-## How to use
+## How to use from source
 
 1. Copy .env.example and set value
-2. run main.py
+    2. DAICHI_USER=user@example.net # you username in https://web.daichicloud.ru
+    3. DAICHI_PASS=password1 # you password in https://web.daichicloud.ru
+    4. MQTT_HOST=localhost # home assistant mqtt host
+    5. MQTT_PORT=1883 # home assistant mqtt port
+    6. MQTT_USER=admin # home assistant mqtt user
+    7. MQTT_PASS=admin # home assistant mqtt pass
+    8. APP_ENABLE_MUTE_SOUND=True # enable or disable silent mode
+2. Install Python 3.12
+3. Install requirements `pip install -r requirements.txt`
+3. `python main.py`
+
+## How to use by docker
+
+Create docker-compose.yml file and .env file
+
+````
+version: '3.8'
+services:
+  daichi-cloud-climate:
+    image: alfss/homeassistant-daichi-cloud-climate-provider:20250822
+    env_file:
+      - .env
+    restart: unless-stopped
+````
 
 ## For local development
 
@@ -28,7 +49,18 @@ I don't have a goal to benefit from this software solution.
 4. read mqttui -b mqtt://localhost:1900 --username admin --password admin
 5. publish mqttui -b mqtt://localhost:1900 --username admin --password admin publish test 23
 
-## How to run in docker 
+## For docker.io login
+```
+docker login docker.io
+```
+Release steps
+```shell
+make build_for_public
+make print_tag
+make publish_public
+```
+## How to run in docker
+
 ````bash
 docker run --rm \                                                                                                                             1 ↵
   -e DAICHI_USER='user@domain.net' \
@@ -38,5 +70,5 @@ docker run --rm \                                                               
   -e MQTT_USER="admin" \
   -e MQTT_PASS="admin" \
   -e APP_ENABLE_MUTE_SOUND="True" \
-  cr.yandex/crpt6a9sphouc986n0ji/homeassistant-daichi-cloud-climate-provider:20250822
+  alfss/homeassistant-daichi-cloud-climate-provider:20250822
 ````
