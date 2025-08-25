@@ -9,8 +9,6 @@ from dataproviders.homeassistant_mqtt.dto import MQTTDeviceTopicControlEnum
 from dataproviders.homeassistant_mqtt.mqtt_provider import HomeAssistantMQTTClimateProvider
 from usecases.restore_state_usecase import RestoreStateClimateDeviceUseCase
 
-# TODO: Нужен кеш последнено полкучения стетейта
-#  или дисковери или применения команды, тогда будет понятно нужно ли делать лишний запрос на получение состояния
 log = structlog.get_logger()
 
 
