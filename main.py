@@ -25,7 +25,10 @@ logging.basicConfig(
 structlog.configure(
     processors=[
         structlog.processors.CallsiteParameterAdder(
-            [structlog.processors.CallsiteParameter.FILENAME, structlog.processors.CallsiteParameter.LINENO]
+            [structlog.processors.CallsiteParameter.FILENAME,
+             structlog.processors.CallsiteParameter.LINENO,
+             structlog.processors.CallsiteParameter.PROCESS,
+             structlog.processors.CallsiteParameter.THREAD_NAME, ]
         ),
         structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M:%S"),
         structlog.dev.ConsoleRenderer(),
@@ -34,6 +37,7 @@ structlog.configure(
 )
 
 log = structlog.get_logger()
+
 
 def discovery_cron_job(interval=5):
     current_pid = os.getpid()
@@ -51,7 +55,7 @@ def discovery_cron_job(interval=5):
                 traceback.print_exc()
                 os.kill(current_pid, signal.SIGTERM)
 
-    schedule_thread = ScheduleThread()
+    schedule_thread = ScheduleThread(name='discovery_cron_job')
     schedule_thread.start()
     log.info("Background task starting...")
     return schedule_thread_event
@@ -63,6 +67,9 @@ def main(
         mqtt_entrypoint: HomeAssistantMQTTEntrypoint = Provide[Container.mqtt_entrypoint],
         cron_entrypoint: CronEntrypoint = Provide[Container.cron_entrypoint],
 ) -> None:
+    main_thread = threading.current_thread()
+    main_thread.name = 'main'
+
     # Start MQTT
     mqtt_provider.set_entrypoint(entrypoint_func=mqtt_entrypoint.device_commands_entrypoint)
     mqtt_provider.set_topics_for_subscribe(topic_mask=HomeAssistantMQTTHelper.get_mask_for_subscribe())
@@ -108,4 +115,3 @@ if __name__ == "__main__":
         log.error(f'Stop running in main thread (wait 10s), error: {e}, {type(e).__name__}')
         traceback.print_exc()
         sleep(10)
-
