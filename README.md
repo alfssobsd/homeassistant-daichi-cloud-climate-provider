@@ -14,16 +14,16 @@ I don't have a goal to benefit from this software solution.
 ## How to use from source
 
 1. Copy .env.example and set value
-    2. DAICHI_USER=user@example.net # you username in https://web.daichicloud.ru
-    3. DAICHI_PASS=password1 # you password in https://web.daichicloud.ru
-    4. MQTT_HOST=localhost # home assistant mqtt host
-    5. MQTT_PORT=1883 # home assistant mqtt port
-    6. MQTT_USER=admin # home assistant mqtt user
-    7. MQTT_PASS=admin # home assistant mqtt pass
-    8. APP_ENABLE_MUTE_SOUND=True # enable or disable silent mode
-2. Install Python 3.12
-3. Install requirements `pip install -r requirements.txt`
-3. `python main.py`
+1. DAICHI_USER=user@example.net # you username in https://web.daichicloud.ru
+1. DAICHI_PASS=password1 # you password in https://web.daichicloud.ru
+1. MQTT_HOST=localhost # home assistant mqtt host
+1. MQTT_PORT=1883 # home assistant mqtt port 
+1. MQTT_USER=admin # home assistant mqtt user
+1. MQTT_PASS=admin # home assistant mqtt pass
+1. APP_ENABLE_MUTE_SOUND=True # enable or disable silent mode
+1. Install Python 3.12
+1. Install requirements `pip install -r requirements.txt`
+1. `python main.py`
 
 ## How to use by docker
 
