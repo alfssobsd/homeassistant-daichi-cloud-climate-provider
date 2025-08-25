@@ -10,6 +10,7 @@ I don't have a goal to benefit from this software solution.
 - [x] Receive commands Homeassistant from MQTT and execute by API
 - [x] Enable silent mode
 - [] filter by buildings and devices
+- [] enable discovery interval setup
 
 ## How to use from source
 
@@ -37,7 +38,7 @@ Create docker-compose.yml file and .env file
 version: '3.8'
 services:
   daichi-cloud-climate:
-    image: alfss/homeassistant-daichi-cloud-climate-provider:v1.0.0
+    image: alfss/homeassistant-daichi-cloud-climate-provider:v1.0.1
     env_file:
       - .env
     restart: unless-stopped
@@ -78,5 +79,5 @@ docker run --rm \                                                               
   -e MQTT_USER="admin" \
   -e MQTT_PASS="admin" \
   -e APP_ENABLE_MUTE_SOUND="True" \
-  alfss/homeassistant-daichi-cloud-climate-provider:v1.0.0
+  alfss/homeassistant-daichi-cloud-climate-provider:v1.0.1
 ````

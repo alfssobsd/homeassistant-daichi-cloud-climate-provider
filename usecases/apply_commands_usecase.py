@@ -67,9 +67,9 @@ class ApplyCommandsUseCase:
 
         if topic_type == MQTTDeviceTopicControlEnum.TEMPERATURE_SET:
             _for_apply += [
-                {'command': ClimateCommandsEnum.SET_TEMP, 'payload': int(payload)},
+                {'command': ClimateCommandsEnum.SET_TEMP, 'payload': int(float(payload))},
             ]
-            device_state.temperature_state = int(payload) # device state temperature
+            device_state.temperature_state = int(float(payload)) # device state temperature
 
         if topic_type == MQTTDeviceTopicControlEnum.FAN_SET:
             # Fan speed ["auto", "low", "medium", "high"]

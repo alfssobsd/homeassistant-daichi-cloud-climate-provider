@@ -39,7 +39,7 @@ structlog.configure(
 log = structlog.get_logger()
 
 
-def discovery_cron_job(interval=5):
+def schedule_thread_start(interval=5):
     current_pid = os.getpid()
     schedule_thread_event = threading.Event()
 
@@ -51,11 +51,11 @@ def discovery_cron_job(interval=5):
                     schedule.run_pending()
                     sleep(interval)
             except Exception as e_thread:
-                log.error(f'Stop running in discovery_cront_job, error: {e_thread}, {type(e_thread).__name__}')
+                log.error(f'Stop running in schedule_thread, error: {e_thread}, {type(e_thread).__name__}')
                 traceback.print_exc()
                 os.kill(current_pid, signal.SIGTERM)
 
-    schedule_thread = ScheduleThread(name='discovery_cron_job')
+    schedule_thread = ScheduleThread(name='schedule_thread')
     schedule_thread.start()
     log.info("Background task starting...")
     return schedule_thread_event
@@ -68,16 +68,16 @@ def main(
         cron_entrypoint: CronEntrypoint = Provide[Container.cron_entrypoint],
 ) -> None:
     main_thread = threading.current_thread()
-    main_thread.name = 'main'
+    main_thread.name = 'main_thread'
 
-    # Start MQTT
-    mqtt_provider.set_entrypoint(entrypoint_func=mqtt_entrypoint.device_commands_entrypoint)
-    mqtt_provider.set_topics_for_subscribe(topic_mask=HomeAssistantMQTTHelper.get_mask_for_subscribe())
-    mqtt_provider.loop_start()
+    # Setup and Start MQTT
+    mqtt_provider.start_listen(entrypoint_func=mqtt_entrypoint.device_commands_entrypoint,
+                               topic_mask=HomeAssistantMQTTHelper.get_mask_for_subscribe())
+    ## Setup Cron
+    cron_entrypoint.setup_cron()
+
     ## Start Cron
-    cron_entrypoint.start_cron()
-
-    cron_thread_event = discovery_cron_job(interval=5)
+    cron_thread_event = schedule_thread_start(interval=5)
     main_thread_event = threading.Event()
 
     def shutdown_by_signal(sig, _):

@@ -21,24 +21,25 @@ class HomeAssistantMQTTClimateProvider:
         self.host = host
         self.port = port
 
-    def set_entrypoint(self, entrypoint_func):
-        log.debug(f'MQTT set entrypoint func {entrypoint_func.__qualname__}')
-        self.client_mqtt.on_message = entrypoint_func
-
-    def set_topics_for_subscribe(self, topic_mask: str):
-        log.info(f'MQTT subscribe to {topic_mask}')
-        self.client_mqtt.subscribe(topic=topic_mask)
-
-    def loop_start(self):
+    def start_listen(self, entrypoint_func, topic_mask: str):
         log.info('Starting up MQTT Client')
+        def on_connect(client: client.Client, _, __, rc):
+            if rc == 0:
+                log.info("Connected to MQTT broker")
+                client.subscribe(topic=topic_mask, qos=2)
+                log.info(f"MQTT subscribe to {topic_mask}")
+            else:
+                log.error(f"Connection failed with code {rc}")
+
+        self.client_mqtt.on_connect = on_connect
+        self.client_mqtt.on_message = entrypoint_func
         self.client_mqtt.connect(host=self.host, port=self.port, keepalive=60)
         self.client_mqtt.loop_start()
 
     def shutdown(self):
         log.info('Shutdown MQTT Client')
-        with self._lock:
-            self.client_mqtt.loop_stop()
-            self.client_mqtt.disconnect()
+        self.client_mqtt.loop_stop()
+        self.client_mqtt.disconnect()
 
     def publish_state(self, state_topic: str, payload: int | str):
         log.debug(f'Publish state = {payload} to topic = {state_topic}')

@@ -14,7 +14,7 @@ class CronEntrypoint:
         self.discovery_climate_uc = discovery_climate_uc
         self.auto_discovery_minutes = auto_discovery_minutes
 
-    def start_cron(self):
+    def setup_cron(self):
         log.info(f'Setup auto-discovery every {self.auto_discovery_minutes} minutes')
         self.task_auto_discovery = schedule.every(self.auto_discovery_minutes).minutes.do(
             self.periodic_discovery_devices_and_restore_state)
