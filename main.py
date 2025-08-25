@@ -35,16 +35,21 @@ structlog.configure(
 
 log = structlog.get_logger()
 
-
-def run_schedule_jobs(interval=5):
+def discovery_cron_job(interval=5):
+    current_pid = os.getpid()
     schedule_thread_event = threading.Event()
 
     class ScheduleThread(threading.Thread):
         @classmethod
         def run(cls):
-            while not schedule_thread_event.is_set():
-                schedule.run_pending()
-                sleep(interval)
+            try:
+                while not schedule_thread_event.is_set():
+                    schedule.run_pending()
+                    sleep(interval)
+            except Exception as e_thread:
+                log.error(f'Stop running in discovery_cront_job, error: {e_thread}, {type(e_thread).__name__}')
+                traceback.print_exc()
+                os.kill(current_pid, signal.SIGTERM)
 
     schedule_thread = ScheduleThread()
     schedule_thread.start()
@@ -65,11 +70,12 @@ def main(
     ## Start Cron
     cron_entrypoint.start_cron()
 
-    cron_thread_event = run_schedule_jobs(interval=5)
+    cron_thread_event = discovery_cron_job(interval=5)
     main_thread_event = threading.Event()
 
     def shutdown_by_signal(sig, _):
-        log.info(f'Shutdown application by signal {sig} ({signal.Signals(sig).name})')
+        log.info(f'Shutdown application by signal (wait 10s) {sig} ({signal.Signals(sig).name})')
+        sleep(10)
         main_thread_event.set()  # Unblock .wait and stop
         cron_thread_event.set()
 
@@ -99,5 +105,7 @@ if __name__ == "__main__":
         container.wire(modules=[__name__])
         main(*sys.argv[1:])
     except Exception as e:
-        log.error(f'Stop running, error: {e}, {type(e).__name__}')
+        log.error(f'Stop running in main thread (wait 10s), error: {e}, {type(e).__name__}')
         traceback.print_exc()
+        sleep(10)
+
