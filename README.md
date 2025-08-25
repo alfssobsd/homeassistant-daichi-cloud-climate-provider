@@ -33,7 +33,7 @@ Create docker-compose.yml file and .env file
 version: '3.8'
 services:
   daichi-cloud-climate:
-    image: alfss/homeassistant-daichi-cloud-climate-provider:20250822
+    image: alfss/homeassistant-daichi-cloud-climate-provider:v1.0.0
     env_file:
       - .env
     restart: unless-stopped
@@ -70,5 +70,5 @@ docker run --rm \                                                               
   -e MQTT_USER="admin" \
   -e MQTT_PASS="admin" \
   -e APP_ENABLE_MUTE_SOUND="True" \
-  alfss/homeassistant-daichi-cloud-climate-provider:20250822
+  alfss/homeassistant-daichi-cloud-climate-provider:v1.0.0
 ````
