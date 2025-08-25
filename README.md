@@ -11,6 +11,7 @@ I don't have a goal to benefit from this software solution.
 - [x] Enable silent mode
 - [] filter by buildings and devices
 - [] enable discovery interval setup
+- [] order of command and check result
 
 ## How to use from source
 
