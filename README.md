@@ -40,7 +40,7 @@ Create docker-compose.yml file and .env file
 version: '3.8'
 services:
   daichi-cloud-climate:
-    image: alfss/homeassistant-daichi-cloud-climate-provider:v1.0.1
+    image: alfss/homeassistant-daichi-cloud-climate-provider:v1.1.0
     env_file:
       - .env
     restart: unless-stopped
