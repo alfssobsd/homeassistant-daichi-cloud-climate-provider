@@ -27,6 +27,10 @@ I don't have a goal to benefit from this software solution.
 
 ## How to use by docker
 
+### Docker Hub
+https://hub.docker.com/repository/docker/alfss/homeassistant-daichi-cloud-climate-provider
+
+### docker-compose
 Create docker-compose.yml file and .env file
 
 ````
@@ -38,6 +42,10 @@ services:
       - .env
     restart: unless-stopped
 ````
+
+## MQTT Topics
+Command = daichi_cloud_climate/device_id_{ID}/ac/+
+Discovery = homeassistant/climate/daichi_cloud_{ID}/climate/config
 
 ## For local development
 
