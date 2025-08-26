@@ -9,7 +9,7 @@ I don't have a goal to benefit from this software solution.
 - [x] Discovery devices and publish to MQTT
 - [x] Receive commands Homeassistant from MQTT and execute by API
 - [x] Enable silent mode
-- [х] filter by buildings and devices
+- [x] filter by buildings and devices
 - [x] enable discovery interval setup
 
 ## How to use from source
