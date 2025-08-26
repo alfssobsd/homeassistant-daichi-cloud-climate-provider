@@ -5,3 +5,4 @@ docker-compose.yaml
 .idea
 local-develop
 Makefile
+docs
