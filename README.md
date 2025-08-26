@@ -15,8 +15,8 @@ I don't have a goal to benefit from this software solution.
 ## How to use from source
 
 1. Copy .env.example and set value
-1. DAICHI_USER=user@example.net # you username in https://web.daichicloud.ru
-1. DAICHI_PASS=password1 # you password in https://web.daichicloud.ru
+1. DAICHI_USER='user@example.net' # you username in https://web.daichicloud.ru
+1. DAICHI_PASS='password1' # you password in https://web.daichicloud.ru
 1. MQTT_HOST=localhost # home assistant mqtt host
 1. MQTT_PORT=1883 # home assistant mqtt port 
 1. MQTT_USER=admin # home assistant mqtt user
