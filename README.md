@@ -47,8 +47,9 @@ services:
 ````
 
 ## MQTT Topics
-Command = daichi_cloud_climate/device_id_{ID}/ac/+
-Discovery = homeassistant/climate/daichi_cloud_{ID}/climate/config
+* Command = `daichi_cloud_climate/device_id_{ID}/ac/+/set`
+* State = `daichi_cloud_climate/device_id_{ID}/ac/+/state`
+* Discovery = `homeassistant/climate/daichi_cloud_{ID}/climate/config`
 
 ## For local development
 
